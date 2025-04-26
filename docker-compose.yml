@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  allset:
+    image: ${DOCKER_REGISTRY-}allset
+    build:
+      context: .
+      dockerfile: ./Dockerfile

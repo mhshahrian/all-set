@@ -1,0 +1,22 @@
+darkube_build_all-set_azno-space_hamravesh-c13:
+  image: hamravesh.hamdocker.ir/public/darkube-cli:v1.1
+  interruptible: true
+  only:
+    refs:
+    - main
+  script:
+  - IMAGE_ADDRESS="registry.hamdocker.ir/azno-space/all-set"
+  - 'darkube build --push -t $IMAGE_ADDRESS:$CI_COMMIT_SHORT_SHA -t $IMAGE_ADDRESS:$CI_COMMIT_REF_SLUG
+    --workdir . --file ./Dockerfile --build-context . '
+  stage: build
+darkube_deploy_all-set_azno-space_hamravesh-c13:
+  image: hamravesh.hamdocker.ir/public/darkube-cli:v1.1
+  interruptible: true
+  only:
+    refs:
+    - main
+  script:
+  - darkube deploy --token ${DEPLOY_TOKEN_ALL_SET_AZNO_SPACE_HAMRAVESH_C13} --app-id
+    ${APP_ID_ALL_SET_AZNO_SPACE_HAMRAVESH_C13} --image-tag ${CI_COMMIT_SHORT_SHA}
+    --job-id ${CI_JOB_ID}
+  stage: deploy

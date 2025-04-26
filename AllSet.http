@@ -1,0 +1,7 @@
+﻿@AllSet_HostAddress = http://localhost:5044
+
+GET {{AllSet_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
