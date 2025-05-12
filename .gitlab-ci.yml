@@ -5,6 +5,7 @@ darkube_build_all-set_azno-space_hamravesh-c13:
     refs:
     - main
   script:
+  - echo "$APPSETTINGS_JSON" | base64 -d > appsettings.json
   - IMAGE_ADDRESS="registry.hamdocker.ir/azno-space/all-set"
   - 'darkube build --push -t $IMAGE_ADDRESS:$CI_COMMIT_SHORT_SHA -t $IMAGE_ADDRESS:$CI_COMMIT_REF_SLUG
     --workdir . --file ./Dockerfile --build-context . '
