@@ -97,15 +97,28 @@ namespace AllSet.Services
             var availableSlots = new List<TimeSlotDto>();
             var currentTime = open;
 
-            foreach (var booking in bookedSlots.OrderBy(b => b.StartDateTime))
+            // Filter only bookings that actually overlap with the working window
+            var relevantBookings = bookedSlots
+                .Where(b => b.EndDateTime.TimeOfDay > open && b.StartDateTime.TimeOfDay < close)
+                .OrderBy(b => b.StartDateTime)
+                .ToList();
+
+            foreach (var booking in relevantBookings)
             {
-                if (currentTime < booking.StartDateTime.TimeOfDay)
+                var bookingStart = booking.StartDateTime.TimeOfDay;
+                var bookingEnd = booking.EndDateTime.TimeOfDay;
+
+                if (currentTime < bookingStart)
                 {
-                    availableSlots.Add(new TimeSlotDto { Start = currentTime, End = booking.StartDateTime.TimeOfDay });
+                    var slotEnd = bookingStart > close ? close : bookingStart;
+                    availableSlots.Add(new TimeSlotDto { Start = currentTime, End = slotEnd });
                 }
-                currentTime = booking.EndDateTime.TimeOfDay;
+
+                // Move currentTime forward only if it's behind this booking
+                currentTime = TimeSpan.FromTicks(Math.Max(currentTime.Ticks, bookingEnd.Ticks));
             }
 
+            // Add final slot if any time remains
             if (currentTime < close)
             {
                 availableSlots.Add(new TimeSlotDto { Start = currentTime, End = close });
@@ -113,5 +126,6 @@ namespace AllSet.Services
 
             return availableSlots;
         }
+
     }
 }

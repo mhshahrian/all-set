@@ -19,6 +19,13 @@ namespace AllSet.Controllers
         }
 
         [HttpGet("api/resources/{resourceId}/[controller]")]
+        public async Task<IActionResult> GetAvailabilityOld(Guid resourceId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+        {
+            var availability = await _availabilityService.GetAvailability(resourceId, startDate, endDate);
+            return Ok(availability);
+        }
+
+        [HttpGet("/api/resources/{resourceId}/[controller]")]
         public async Task<IActionResult> GetAvailability(Guid resourceId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
         {
             var availability = await _availabilityService.GetAvailability(resourceId, startDate, endDate);
