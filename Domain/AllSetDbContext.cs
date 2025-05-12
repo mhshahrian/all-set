@@ -26,6 +26,8 @@ namespace AllSet.Domain
 
         public DbSet<WorkingHour> WorkingHours { get; set; }
 
+        public DbSet<WorkingTimeOverride> WorkingTimeOverrides { get; set; }
+
     }
 }
 

@@ -32,61 +32,64 @@ namespace AllSet.Services
         public async Task<bool> IsWithinWorkingHours(Guid resourceId, DateTime startDateTime, DateTime endDateTime)
         {
             var date = startDateTime.ToUniversalTime().Date;
-            var dayOfWeek = date.DayOfWeek;
+            var (open, close) = await GetEffectiveWorkingHours(resourceId, date);
 
-            var workingHours = await _dbContext.WorkingHours
-                .Where(w => w.ResourceId == resourceId && w.DayOfWeek == dayOfWeek)
-                .ToListAsync();
-
-            if (!workingHours.Any()) return false;
+            if (open == null || close == null) return false;
 
             var startTime = startDateTime.ToUniversalTime().TimeOfDay;
             var endTime = endDateTime.ToUniversalTime().TimeOfDay;
 
-            return workingHours.Any(w =>
-                w.OpenTime <= startTime &&
-                w.CloseTime >= endTime
-            );
+            return open <= startTime && close >= endTime;
         }
 
         private async Task<AvailabilityResponseDto> GetDailyAvailability(Guid resourceId, DateTime date)
         {
-            var workingHours = await _dbContext.WorkingHours
-                .Where(w => w.ResourceId == resourceId && w.DayOfWeek == date.DayOfWeek).ToListAsync();
-
-            /* Commenting out exception handling for this phase
-            var exception = await _dbContext.ResourceExceptions
-                .FirstOrDefaultAsync(e => e.ResourceId == resourceId && e.Date == date);
-            */
-
             var bookedSlots = await _dbContext.Bookings
                 .Where(b => !b.IsDeleted && b.ResourceId == resourceId &&
-                b.StartDateTime.Date == date.ToUniversalTime().Date &&
-                b.Status == "confirmed")
+                            b.StartDateTime.Date == date.Date && b.Status == "confirmed")
                 .Select(b => new BookedSlotDto
                 {
                     StartDateTime = b.StartDateTime.ToUniversalTime(),
                     EndDateTime = b.EndDateTime.ToUniversalTime()
-                })
-                .ToListAsync();
-
+                }).ToListAsync();
 
             var availability = new AvailabilityResponseDto(date.ToUniversalTime());
 
-            if (/*exception?.IsClosed == true ||*/ !workingHours.Any())
-            {
-                return availability; // No available slots
-            }
+            var (open, close) = await GetEffectiveWorkingHours(resourceId, date);
+            if (open == null || close == null)
+                return availability; // closed or holiday
 
-            foreach (var workingHour in workingHours.OrderBy(x => x.OpenTime))
-            {
-                var openTime = /*exception?.OpenTime ??*/ workingHour.OpenTime;
-                var closeTime = /*exception?.CloseTime ??*/ workingHour.CloseTime;
-
-                availability.AvailableTimeSlots.AddRange(CalculateFreeSlots(openTime, closeTime, bookedSlots));
-            }
+            availability.AvailableTimeSlots.AddRange(CalculateFreeSlots(open.Value, close.Value, bookedSlots));
 
             return availability;
+        }
+
+        private async Task<(TimeSpan? Open, TimeSpan? Close)> GetEffectiveWorkingHours(Guid resourceId, DateTime date)
+        {
+            var overrideEntry = await _dbContext.WorkingTimeOverrides
+                .FirstOrDefaultAsync(w => w.ResourceId == resourceId && w.Date == date.Date);
+
+            if (overrideEntry != null)
+            {
+                if (overrideEntry.IsClosed)
+                    return (null, null);
+
+                return (overrideEntry.OpenTime, overrideEntry.CloseTime);
+            }
+
+            var dayOfWeek = date.DayOfWeek;
+            var workingHours = await _dbContext.WorkingHours
+                .Where(w => w.ResourceId == resourceId && w.DayOfWeek == dayOfWeek)
+                .OrderBy(w => w.OpenTime)
+                .ToListAsync();
+
+            if (!workingHours.Any())
+                return (null, null);
+
+            var open = workingHours.Min(w => w.OpenTime);
+            var close = workingHours.Max(w => w.CloseTime);
+
+            return (open, close);
         }
 
         private List<TimeSlotDto> CalculateFreeSlots(TimeSpan open, TimeSpan close, List<BookedSlotDto> bookedSlots)
