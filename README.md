@@ -1,34 +1,34 @@
 # AllSet
 
-AllSet is an open-source, API-first booking and availability management system.  
-It provides developers with a powerful, lightweight solution to handle resource scheduling, conflict management, and availability checking with ease.
+**AllSet** is an open-source, API-first booking and availability engine built for speed and flexibility.  
+Whether you're building a new product or streamlining internal operations, AllSet helps developers move fast with clean, conflict-free scheduling.
 
 ---
 
-## ✨ Features
+## ✨ Why AllSet?
 
-- 📅 **Resource Booking:** Create, update, and soft-delete bookings with ease.
-- 🕒 **Availability Checking:** Real-time checking against working hours.
-- 🚫 **Conflict Prevention:** Automatic detection of overlapping bookings.
-- 🔗 **API-First Design:** Designed from the ground up to be easily consumed via APIs.
-- 🔄 **Soft Deletion:** Keep booking records for auditing while making them inactive.
-- 🛠️ **Extensible Architecture:** Easily customizable for different business needs.
-- 🆓 **Open Source:** Fully open under the MIT License.
+- 📅 **Smart Bookings:** Create, update, and soft-delete bookings effortlessly.
+- 🕒 **Live Availability:** Instantly check resource availability against working hours.
+- 🚫 **Built-in Conflict Handling:** Automatically prevent overlaps and double bookings.
+- 🔌 **Developer-First APIs:** Designed to integrate seamlessly into your stack.
+- 🧠 **Audit-Friendly:** Soft deletion keeps a history without cluttering active data.
+- 🛠️ **Made to Extend:** Easily customize logic to fit your business needs.
+- 🆓 **MIT Licensed:** Fully open source, ready for production.
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-- PostgreSQL (or your preferred relational database)
-- (Optional) Docker for containerized development
+- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)  
+- PostgreSQL (or any relational DB of your choice)  
+- *(Optional)* Docker for a smoother local setup
 
 ### Installation
 
-1. **Clone the repository**
+1. **Clone the repo**
 
-```bash
-git clone https://github.com/mhshahrian/all-set.git
-cd all-set
+   ```bash
+   git clone https://github.com/mhshahrian/all-set.git
+   cd all-set
