@@ -91,17 +91,17 @@ namespace AllSet.Controllers
             return Ok(bookings);
         }
 
-        ///// <summary>
-        ///// Retrieves a specific booking by ID.
-        ///// </summary>
-        //[HttpGet("{bookingId}")]
-        //public async Task<ActionResult<BookingResponseDto>> GetBooking(Guid bookingId)
-        //{
-        //    var booking = await _bookingService.GetBookingById(bookingId);
-        //    if (booking == null) return NotFound();
+        /// <summary>
+        /// Retrieves a specific booking by ID.
+        /// </summary>
+        [HttpGet("{bookingId}")]
+        public async Task<ActionResult<BookingResponseDto>> GetBooking(Guid bookingId)
+        {
+           var booking = await _bookingService.GetBookingById(bookingId);
+           if (booking == null) return NotFound();
 
-        //    return Ok(booking);
-        //}
+           return Ok(booking);
+        }
 
         /// <summary>
         /// Deletes a booking.

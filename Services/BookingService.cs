@@ -164,6 +164,21 @@ namespace AllSet.Services
             return bookings;
         }
 
+        public async Task<BookingResponseDto?> GetBookingById(Guid bookingId)
+        {
+            var booking = await _dbContext.Bookings.FindAsync(bookingId);
+            if (booking == null) return null;
+            return new BookingResponseDto
+            {
+                Id = booking.Id,
+                ResourceId = booking.ResourceId,
+                StartDateTime = booking.StartDateTime,
+                EndDateTime = booking.EndDateTime,
+                OrderId = booking.OrderId,
+                Metadata = booking.Metadata
+            };
+        }
+
         public async Task<bool> DeleteBooking(Guid bookingId)
         {
             var booking = await _dbContext.Bookings.FindAsync(bookingId);
