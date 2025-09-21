@@ -46,12 +46,21 @@ namespace AllSet.Services
                     continue;
                 }
 
+                // Get resource gap configuration
+                var resource = await _dbContext.Resources.FindAsync(req.ResourceId);
+                var gapInMinutes = resource?.GapInMinutes ?? 0;
+                var gap = TimeSpan.FromMinutes(gapInMinutes);
+
+                // Check for overlapping bookings considering the gap
+                var effectiveStartUtc = startUtc - gap;
+                var effectiveEndUtc = endUtc + gap;
+
                 bool isOverlapping = await _dbContext.Bookings.AnyAsync(b =>
                     !b.IsDeleted &&
                     b.Status == "confirmed" &&
                     b.ResourceId == req.ResourceId &&
-                    b.StartDateTime < endUtc &&
-                    b.EndDateTime > startUtc);
+                    b.StartDateTime < effectiveEndUtc &&
+                    b.EndDateTime > effectiveStartUtc);
 
                 if (isOverlapping)
                 {

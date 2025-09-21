@@ -9,6 +9,8 @@
 
         public string Name { get; set; } // e.g., "Massage Chair 1"
 
+        public int GapInMinutes { get; set; } = 0; // Required gap between bookings in minutes
+
         public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
     }
 

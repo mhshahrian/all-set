@@ -44,6 +44,9 @@ namespace AllSet.Services
 
         private async Task<AvailabilityResponseDto> GetDailyAvailability(Guid resourceId, DateTime date)
         {
+            var resource = await _dbContext.Resources.FindAsync(resourceId);
+            if (resource == null) return new AvailabilityResponseDto(date.ToUniversalTime());
+
             var bookedSlots = await _dbContext.Bookings
                 .Where(b => !b.IsDeleted && b.ResourceId == resourceId &&
                             b.StartDateTime.Date == date.Date && b.Status == "confirmed")
@@ -59,7 +62,7 @@ namespace AllSet.Services
             if (open == null || close == null)
                 return availability; // closed or holiday
 
-            availability.AvailableTimeSlots.AddRange(CalculateFreeSlots(open.Value, close.Value, bookedSlots));
+            availability.AvailableTimeSlots.AddRange(CalculateFreeSlots(open.Value, close.Value, bookedSlots, resource.GapInMinutes));
 
             return availability;
         }
@@ -92,10 +95,11 @@ namespace AllSet.Services
             return (open, close);
         }
 
-        private List<TimeSlotDto> CalculateFreeSlots(TimeSpan open, TimeSpan close, List<BookedSlotDto> bookedSlots)
+        private List<TimeSlotDto> CalculateFreeSlots(TimeSpan open, TimeSpan close, List<BookedSlotDto> bookedSlots, int gapInMinutes)
         {
             var availableSlots = new List<TimeSlotDto>();
             var currentTime = open;
+            var gap = TimeSpan.FromMinutes(gapInMinutes);
 
             // Filter only bookings that actually overlap with the working window
             var relevantBookings = bookedSlots
@@ -108,14 +112,22 @@ namespace AllSet.Services
                 var bookingStart = booking.StartDateTime.TimeOfDay;
                 var bookingEnd = booking.EndDateTime.TimeOfDay;
 
-                if (currentTime < bookingStart)
+                // Apply gap: booking effectively starts earlier and ends later
+                var effectiveBookingStart = bookingStart - gap;
+                var effectiveBookingEnd = bookingEnd + gap;
+
+                // Ensure effective times don't go outside working hours
+                effectiveBookingStart = TimeSpan.FromTicks(Math.Max(effectiveBookingStart.Ticks, open.Ticks));
+                effectiveBookingEnd = TimeSpan.FromTicks(Math.Min(effectiveBookingEnd.Ticks, close.Ticks));
+
+                if (currentTime < effectiveBookingStart)
                 {
-                    var slotEnd = bookingStart > close ? close : bookingStart;
+                    var slotEnd = effectiveBookingStart > close ? close : effectiveBookingStart;
                     availableSlots.Add(new TimeSlotDto { Start = currentTime, End = slotEnd });
                 }
 
-                // Move currentTime forward only if it's behind this booking
-                currentTime = TimeSpan.FromTicks(Math.Max(currentTime.Ticks, bookingEnd.Ticks));
+                // Move currentTime forward only if it's behind this booking (including gap)
+                currentTime = TimeSpan.FromTicks(Math.Max(currentTime.Ticks, effectiveBookingEnd.Ticks));
             }
 
             // Add final slot if any time remains

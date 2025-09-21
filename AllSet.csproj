@@ -4,7 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <DockerComposeProjectPath>docker-compose.dcproj</DockerComposeProjectPath>
     <UserSecretsId>1e403c0e-252a-4540-9d30-0ef35d7c1870</UserSecretsId>
   </PropertyGroup>
 
